@@ -1,0 +1,208 @@
+{
+  "servers": {
+    "s4-sd-mcp": {
+      "tools": {
+        "get_sales_orders": {
+          "description": "Retrieve open sales orders for a customer from SAP S/4HANA SD.",
+          "input_schema": {
+            "type": "object",
+            "properties": {
+              "customer_id": {
+                "type": "string",
+                "description": "Customer number (e.g. C0001000)"
+              },
+              "sales_org": {
+                "type": "string",
+                "description": "Sales organization (e.g. 1010)"
+              }
+            },
+            "required": ["customer_id"]
+          },
+          "mock_response": {
+            "sales_orders": [
+              {
+                "SalesOrder": "4500001234",
+                "Customer": "C0001000",
+                "CustomerName": "Acme Corporation",
+                "SalesOrganization": "1010",
+                "NetAmount": 125000.00,
+                "Currency": "USD",
+                "CreationDate": "2025-01-15",
+                "OverallStatus": "Open",
+                "Items": [
+                  {
+                    "SalesOrderItem": "10",
+                    "Material": "PUMP-001",
+                    "Description": "Industrial Pump Model A",
+                    "Quantity": 5,
+                    "Unit": "EA",
+                    "NetAmount": 75000.00,
+                    "ListPrice": 16500.00
+                  },
+                  {
+                    "SalesOrderItem": "20",
+                    "Material": "FILTER-002",
+                    "Description": "Replacement Filter Set",
+                    "Quantity": 20,
+                    "Unit": "EA",
+                    "NetAmount": 50000.00,
+                    "ListPrice": 2750.00
+                  }
+                ]
+              },
+              {
+                "SalesOrder": "4500001235",
+                "Customer": "C0001000",
+                "CustomerName": "Acme Corporation",
+                "SalesOrganization": "1010",
+                "NetAmount": 48000.00,
+                "Currency": "USD",
+                "CreationDate": "2025-01-20",
+                "OverallStatus": "Open",
+                "Items": [
+                  {
+                    "SalesOrderItem": "10",
+                    "Material": "VALVE-003",
+                    "Description": "Control Valve Assembly",
+                    "Quantity": 8,
+                    "Unit": "EA",
+                    "NetAmount": 48000.00,
+                    "ListPrice": 6500.00
+                  }
+                ]
+              }
+            ]
+          }
+        },
+        "get_pricing_conditions": {
+          "description": "Retrieve current pricing conditions and discount records for a sales order or customer.",
+          "input_schema": {
+            "type": "object",
+            "properties": {
+              "sales_order": {
+                "type": "string",
+                "description": "Sales order number"
+              },
+              "customer_id": {
+                "type": "string",
+                "description": "Customer number"
+              },
+              "condition_type": {
+                "type": "string",
+                "description": "Pricing condition type (e.g. K007, RPRO, K047)"
+              }
+            }
+          },
+          "mock_response": {
+            "pricing_conditions": [
+              {
+                "ConditionType": "PR00",
+                "ConditionTypeName": "Price",
+                "ConditionRateValue": 16500.00,
+                "ConditionCurrency": "USD",
+                "ConditionQuantityUnit": "EA"
+              },
+              {
+                "ConditionType": "K007",
+                "ConditionTypeName": "Customer Discount",
+                "ConditionRateValue": -3.0,
+                "ConditionRateValueUnit": "%",
+                "CurrentDiscount": 3.0,
+                "MaxDiscount": 8.0
+              },
+              {
+                "ConditionType": "RPRO",
+                "ConditionTypeName": "Rebate Provision",
+                "ConditionRateValue": -1.5,
+                "ConditionRateValueUnit": "%"
+              },
+              {
+                "ConditionType": "K047",
+                "ConditionTypeName": "Volume Discount",
+                "ConditionRateValue": 0.0,
+                "ConditionRateValueUnit": "%",
+                "Threshold": 100000.00,
+                "MaxDiscount": 5.0,
+                "ThresholdCurrency": "USD"
+              }
+            ],
+            "gross_margin_pct": 28.5,
+            "cost_of_goods": 89375.00
+          }
+        },
+        "get_sales_price": {
+          "description": "Retrieve list price and sales price information for a material.",
+          "input_schema": {
+            "type": "object",
+            "properties": {
+              "material": {
+                "type": "string",
+                "description": "Material number"
+              },
+              "sales_org": {
+                "type": "string",
+                "description": "Sales organization"
+              },
+              "distribution_channel": {
+                "type": "string",
+                "description": "Distribution channel"
+              }
+            },
+            "required": ["material"]
+          },
+          "mock_response": {
+            "material": "PUMP-001",
+            "material_description": "Industrial Pump Model A",
+            "list_price": 16500.00,
+            "currency": "USD",
+            "standard_cost": 11220.00,
+            "target_margin_pct": 20.0,
+            "minimum_price": 13464.00,
+            "minimum_price_note": "Maintains 15% gross margin floor",
+            "valid_from": "2025-01-01",
+            "valid_to": "2025-12-31"
+          }
+        },
+        "simulate_sales_order": {
+          "description": "Simulate a sales order with proposed discount to calculate net price and margin impact.",
+          "input_schema": {
+            "type": "object",
+            "properties": {
+              "sales_order": {
+                "type": "string",
+                "description": "Sales order number to simulate"
+              },
+              "discount_pct": {
+                "type": "number",
+                "description": "Proposed discount percentage (e.g. 5.0 for 5%)"
+              },
+              "condition_type": {
+                "type": "string",
+                "description": "Condition type to apply discount (e.g. K007)"
+              }
+            },
+            "required": ["sales_order", "discount_pct"]
+          },
+          "mock_response": {
+            "simulation_id": "SIM-20250115-001",
+            "sales_order": "4500001234",
+            "proposed_discount_pct": 5.0,
+            "condition_type": "K007",
+            "original_net_amount": 125000.00,
+            "simulated_net_amount": 118750.00,
+            "discount_amount": 6250.00,
+            "currency": "USD",
+            "cost_of_goods": 89375.00,
+            "simulated_gross_margin": 29375.00,
+            "simulated_gross_margin_pct": 24.7,
+            "margin_floor_pct": 15.0,
+            "margin_floor_breached": false,
+            "recommendation": "Discount approved - margin of 24.7% is above 15% floor",
+            "max_additional_discount_pct": 9.6,
+            "max_additional_discount_note": "Maximum additional discount before reaching 15% margin floor"
+          }
+        }
+      }
+    }
+  }
+}
